@@ -1,3 +1,4 @@
+-- CREATE
 -- 고객 테이블 생성
 create table 고객(
     고객아이디 VARCHAR(20) NOT NULL PRIMARY KEY,
@@ -40,6 +41,7 @@ CREATE TABLE 배송업체 (
     전화번호 VARCHAR(20)
 );
 
+
 -- ALTER TABLE문
 -- ADD
 ALTER TABLE 고객
@@ -49,4 +51,25 @@ ADD 가입날짜 DATE;
 ALTER TABLE 고객
 DROP COLUMN 가입날짜;
 
+-- ADD CONSTRAINT
+ALTER TABLE 고객
+ADD CONSTRAINT CHK_AGE CHECK(나이 >= 20);
 
+-- DROP CONSTRAINT
+ALTER TABLE 고객
+DROP CONSTRAINT CHK_AGE;
+
+--DROP TABLE
+DROP TABLE 배송업체;
+
+-- INSERT
+INSERT INTO 고객 VALUES('apple','정소화',20,'gold','학생',1000);
+-- 한 번에 삽입
+INSERT ALL 
+INTO 고객 VALUES('banana','김선우',25,'vip','간호사',2500)
+INTO 고객 VALUES('carrot','고명석',28,'gold','교사',4500)
+INTO 고객 VALUES('orange','김용욱',22,'silver','학생',0)
+INTO 고객 VALUES('melon','성원용',35,'gold','회사원',5000)
+INTO 고객 VALUES('peach','오형준',NULL,'silver','의사',300)
+INTO 고객 VALUES('pear','채광주',31,'silver','회사원',500)
+SELECT * FROM dual; -- 쿼리 실행을 위한 더미 테이블
