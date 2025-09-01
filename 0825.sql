@@ -1,4 +1,5 @@
--- CREATE
+-- # DDL
+-- ## CREATE
 -- 고객 테이블 생성
 create table 고객(
     고객아이디 VARCHAR(20) NOT NULL PRIMARY KEY,
@@ -42,27 +43,27 @@ CREATE TABLE 배송업체 (
 );
 
 
--- ALTER TABLE문
--- ADD
+-- ## ALTER TABLE
+-- ### ADD
 ALTER TABLE 고객
 ADD 가입날짜 DATE;
 
--- DROP
+-- ### DROP
 ALTER TABLE 고객
 DROP COLUMN 가입날짜;
 
--- ADD CONSTRAINT
+-- ### ADD CONSTRAINT
 ALTER TABLE 고객
 ADD CONSTRAINT CHK_AGE CHECK(나이 >= 20);
 
--- DROP CONSTRAINT
+-- ### DROP CONSTRAINT
 ALTER TABLE 고객
 DROP CONSTRAINT CHK_AGE;
 
---DROP TABLE
+-- ### DROP TABLE
 DROP TABLE 배송업체;
 
--- INSERT
+-- ### INSERT
 INSERT INTO 고객 VALUES('apple','정소화',20,'gold','학생',1000);
 -- 한 번에 삽입
 INSERT ALL 
