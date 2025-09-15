@@ -60,3 +60,25 @@ SELECT  주문고객, 주문제품, SUM(수량) AS 총주문수량
 FROM 주문
 GROUP BY 주문고객, 주문제품
 HAVING SUM(수량) >= 30 AND 주문제품 BETWEEN 'p01' AND 'p04';
+
+-- ## JOIN
+-- 자연조인 (Natural Join)
+SELECT o.주문번호, o.주문고객, p.제품명, p.단가, p.제조업체
+FROM 주문 o, 제품 p
+WHERE o.주문제품 = p.제품번호;
+
+SELECT p.제품명
+FROM 주문 o, 제품 p
+WHERE o.주문제품 = p.제품번호 AND 주문고객 = 'banana';
+
+SELECT c.고객이름, c.나이, c.직업, p.제품명, p.단가, o.주문일자, o.배송지
+FROM 주문 o, 고객 c, 제품 p
+WHERE o.주문고객 = c.고객아이디 AND o.주문제품 = p.제품번호 AND o.주문고객 = 'apple';
+
+SELECT 나이, 제품번호, 제품명, 주문일자
+FROM 주문 o, 제품 p, 고객 c
+WHERE o.주문제품 = p.제품번호 AND o.주문고객 = c.고객아이디
+    AND c.나이 >= 30;
+
+SELECT * FROM 주문;
+SELECT * FROM 고객;
