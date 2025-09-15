@@ -24,3 +24,10 @@ ORDER BY 등급;
 SELECT 제조업체, COUNT(*) AS 제품수, MAX(단가) AS 최고가
 FROM 제품
 GROUP BY 제조업체;
+
+SELECT 직업, ROUND(AVG(나이)) AS 평균나이, MIN(적립금) AS "최저 적립금"
+FROM 고객
+GROUP BY 직업;
+
+-- ###
+
