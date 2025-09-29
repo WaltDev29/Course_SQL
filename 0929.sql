@@ -63,6 +63,62 @@ WHERE 고객이름 = '김키위';
 
 
 
+-- VIEW
+-- CREATE
+CREATE VIEW 우수고객 (고객아이디, 고객이름, 나이, 등급)
+AS SELECT 고객아이디, 고객이름, 나이, 등급
+    FROM 고객
+    WHERE 등급 = 'vip'
+    WITH CHECK OPTION;
+    
+SELECT * FROM 우수고객;
+
+select *
+FROM 우수고객
+WHERE 나이 >= 20;
+
+CREATE VIEW 업체별제품수
+AS SELECT 제조업체, COUNT(*) AS 제품수
+    FROM 제품
+    GROUP BY 제조업체
+WITH CHECK OPTION;
+    
+SELECT * FROM 업체별제품수;
+
+
+
+-- 변경 가능한 뷰
+CREATE VIEW 제품2
+AS SELECT 제품번호, 재고량, 제조업체
+    FROM 제품
+WITH CHECK OPTION;
+
+INSERT INTO 제품2
+VALUES ('p08', 1000, '신선식품');
+
+SELECT * FROM 제품2;
+-- VIEW에서 수정한 내용은 원본 테이블에도 적용됨
+SELECT * FROM 제품;
+
+
+
+-- 변경 불가능한 뷰
+-- 1. PK를 포함하지 않은 VIEW
+CREATE VIEW 제품1
+AS SELECT 제품명, 재고량, 제조업체
+    FROM 제품
+WITH CHECK OPTION;
+    
+SELECT * FROM 제품1;
+
+INSERT INTO 제품1
+VALUES ('호호비스킷', 500, '호호제과');
+
+
+
+-- DROP VIEW
+DROP VIEW 제품1;
+
 SELECT * FROM 한빛제품;
 SELECT * FROM 고객;
 SELECT * FROM 제품;
