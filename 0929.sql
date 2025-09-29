@@ -52,6 +52,17 @@ WHERE 주문고객 IN (SELECT 고객아이디
                     FROM 고객
                     WHERE 고객이름 = '정소화');
 
+
+
+-- DELETE
+DELETE FROM 한빛제품
+WHERE 단가 >= 1000 AND 단가 <= 2500;
+
+DELETE FROM 고객
+WHERE 고객이름 = '김키위';
+
+
+
 SELECT * FROM 한빛제품;
 SELECT * FROM 고객;
 SELECT * FROM 제품;
