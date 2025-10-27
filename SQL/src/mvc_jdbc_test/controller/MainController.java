@@ -10,33 +10,74 @@ import java.util.Scanner;
 import jdbc_test.JDBCConnector;
 import mvc_jdbc_test.entity.Customer;
 import mvc_jdbc_test.entity.Order;
-import mvc_jdbc_test.view.CustomerView;
-import mvc_jdbc_test.view.InputCustomerInfoView;
-import mvc_jdbc_test.view.OrderView;
+import mvc_jdbc_test.view.*;
+
+// in progress
+// 각 화면의 view 함수 만들어야 함.
+// mainview view inputAnswer 메서드 range 적용
+
+// todo
+// 각 기능 구현
+// 각 기능의 state, answer 추가
 
 public class MainController {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         Connection con;
+        MainView mv = new MainView();
+        int state = 0;
 
         ArrayList<Customer> customerList;
         ArrayList<Order> orderList;
 
-        // 정보 SELECT
-        try {
-            con = JDBCConnector.getConnection();
-            customerList = getCustomerList(con);
-            orderList = getOrderList(con);
+        con = JDBCConnector.getConnection();
 
-        } catch (SQLException e) {
-            System.out.println("Statement or SQL Error");
-            throw new RuntimeException(e);
+        while (true) {
+            switch (state) {
+                // 메인 화면
+                case 0:
+                    mv.showMainView();
+                    state = mv.inputAnswer(sc, 4);
+                    break;
+
+                // 데이터 조회 화면
+                case 1:
+                    mv.showQueryView();
+
+                    try {
+                        customerList = getCustomerList(con);
+                        orderList = getOrderList(con);
+                    } catch (SQLException e) {
+                        System.out.println("Statement or SQL Error");
+                        throw new RuntimeException(e);
+                    }
+
+                    printItemList(customerList, new CustomerView());
+                    printItemList(orderList, new OrderView());
+                    break;
+
+                // 데이터 추가 화면
+                case 2:
+                    mv.showInsertView();
+
+                    inputCustomerInfo(con, sc);
+                    break;
+
+                // 데이터 수정 화면
+                case 3:
+                    mv.showUpdateView();
+                    break;
+
+                // 데이터 삭제 화면
+                case 4:
+                    mv.showDeleteView();
+                    break;
+
+                default:
+                    System.out.println("잘못된 입력입니다. 1~3의 정수를 입력해주세요.");
+            }
+            if (state == -1) break;
         }
-        printCustomerList(customerList);
-        printOrderList(orderList);
-
-        // 고객 정보 INSERT
-        inputCustomerInfo(con, sc);
 
         sc.close();
     }
@@ -62,16 +103,6 @@ public class MainController {
         ps.close();
         rs.close();
         return customerList;
-    }
-
-    public static void printCustomerList(ArrayList<Customer> customerList) {
-        CustomerView cv = new CustomerView();
-        cv.printHead();
-        for (Customer c : customerList) {
-            cv.printCustomer(c);
-            System.out.println();
-        }
-        cv.printFoot();
     }
 
     public static ArrayList<Order> getOrderList(Connection con) throws SQLException {
@@ -102,15 +133,15 @@ public class MainController {
         return ordersList;
     }
 
-    public static void printOrderList(ArrayList<Order> orderList) {
-        OrderView ov = new OrderView();
-        ov.printHead();
-        for (Order o : orderList) {
-            ov.printOrders(o);
+    public static <T> void printItemList(ArrayList<T> itemList, ObjectView<T> view) {
+        view.printHead();
+        for (T item : itemList) {
+            view.printItem(item);
             System.out.println();
         }
-        ov.printFoot();
+        view.printFoot();
     }
+
 
     public static void inputCustomerInfo(Connection con, Scanner sc) {
         InputCustomerInfoView iciv = new InputCustomerInfoView();
@@ -166,6 +197,6 @@ public class MainController {
         // 입력 내용 출력
         System.out.println("입력 종료");
         System.out.println("====== 입력 내용 ======\n");
-        printCustomerList(inputCustomerList);
+        printItemList(inputCustomerList, new CustomerView());
     }
 }
