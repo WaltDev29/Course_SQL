@@ -58,10 +58,3 @@ public class Order {
         return orderDate;
     }
 }
-
-
-// 주문 목록을 화면에 출력
-// 3개의 테이블 조인
-// Order Entity 생성 (클래스)
-
-// 고객명 고객아이디 배송지 수량 주문일자 제품명

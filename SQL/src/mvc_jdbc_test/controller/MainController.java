@@ -10,50 +10,63 @@ import java.util.Scanner;
 import jdbc_test.JDBCConnector;
 import mvc_jdbc_test.entity.Customer;
 import mvc_jdbc_test.entity.Order;
+import mvc_jdbc_test.entity.Product;
 import mvc_jdbc_test.view.*;
 
-// in progress
-// 각 화면의 view 함수 만들어야 함.
-// mainview view inputAnswer 메서드 range 적용
-
 // todo
+// 각 View 컬럼 길이 맞추기
+
+// todo-later
+// 각 기능 화면 구현
 // 각 기능 구현
 // 각 기능의 state, answer 추가
 
 public class MainController {
     public static void main(String[] args) {
+        // 변수 선언
         Scanner sc = new Scanner(System.in);
         Connection con;
         MainView mv = new MainView();
-        int state = 0;
+        int mainState = 0;
 
+        // 결과 담을 List 선언
         ArrayList<Customer> customerList;
+        ArrayList<Product> productList;
         ArrayList<Order> orderList;
 
+        // JDBC 연결
         con = JDBCConnector.getConnection();
 
+        // 메인 프로그램
         while (true) {
-            switch (state) {
-                // 메인 화면
+            switch (mainState) {
+                // 메인
                 case 0:
                     mv.showMainView();
-                    state = mv.inputAnswer(sc, 4);
+                    mainState = mv.inputAnswer(sc, 0, 4);
+                    if (mainState == 0) mainState = -1;
                     break;
 
-                // 데이터 조회 화면
+                // 데이터 조회
                 case 1:
                     mv.showQueryView();
-
-                    try {
-                        customerList = getCustomerList(con);
-                        orderList = getOrderList(con);
-                    } catch (SQLException e) {
-                        System.out.println("Statement or SQL Error");
-                        throw new RuntimeException(e);
+                    int queryState = mv.inputAnswer(sc, 1, 3);
+                    switch (queryState) {
+                        case 1:
+                            customerList = getCustomerList(con);
+                            printItemList(customerList, new CustomerView());
+                            break;
+                        case 2:
+                            productList = getProductList(con);
+                            printItemList(productList, new ProductView());
+                            break;
+                        case 3:
+                            orderList = getOrderList(con);
+                            printItemList(orderList, new OrderView());
+                            break;
                     }
-
-                    printItemList(customerList, new CustomerView());
-                    printItemList(orderList, new OrderView());
+                    inputEnter(sc);
+                    mainState = 0;
                     break;
 
                 // 데이터 추가 화면
@@ -76,36 +89,79 @@ public class MainController {
                 default:
                     System.out.println("잘못된 입력입니다. 1~3의 정수를 입력해주세요.");
             }
-            if (state == -1) break;
+            if (mainState == -1) break;
         }
 
+        System.out.println("\n프로그램을 종료합니다.");
         sc.close();
     }
 
-    public static ArrayList<Customer> getCustomerList(Connection con) throws SQLException {
+    public static void inputEnter(Scanner sc) {
+        System.out.println("Enter를 눌러 처음으로");
+        sc.nextLine();
+    }
+
+    public static ArrayList<Customer> getCustomerList(Connection con) {
         ArrayList<Customer> customerList = new ArrayList<>();
         Customer customer;
 
         String sql = "SELECT * FROM 고객";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                customer = new Customer(
+                        rs.getString("고객아이디"),
+                        rs.getString("고객이름"),
+                        rs.getInt("나이"),
+                        rs.getString("등급"),
+                        rs.getString("직업"),
+                        rs.getInt("적립금"));
+                customerList.add(customer);
+            }
+
+            ps.close();
+            rs.close();
+
+        } catch (SQLException e) {
+            System.out.println("Statement or SQL Error");
+            throw new RuntimeException(e);
+        }
+        return customerList;
+    }
+
+    public static ArrayList<Product> getProductList(Connection con) {
+        ArrayList<Product> productList = new ArrayList<>();
+        Product product;
+        String sql = "SELECT * FROM 제품";
+
+        try {
         PreparedStatement ps = con.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
 
         while (rs.next()) {
-            customer = new Customer(
-                    rs.getString("고객아이디"),
-                    rs.getString("고객이름"),
-                    rs.getInt("나이"),
-                    rs.getString("등급"),
-                    rs.getString("직업"),
-                    rs.getInt("적립금"));
-            customerList.add(customer);
+            product = new Product(
+                    rs.getString("제품번호"),
+                    rs.getString("제품명"),
+                    rs.getInt("재고량"),
+                    rs.getInt("단가"),
+                    rs.getString("제조업체")
+            );
+            productList.add(product);
         }
+
         ps.close();
         rs.close();
-        return customerList;
-    }
 
-    public static ArrayList<Order> getOrderList(Connection con) throws SQLException {
+        } catch (SQLException e) {
+            System.out.println("Statement or SQL Error");
+            throw new RuntimeException(e);
+        }
+
+        return productList;
+    }
+    public static ArrayList<Order> getOrderList(Connection con) {
         ArrayList<Order> ordersList = new ArrayList<>();
         Order order;
 
@@ -113,23 +169,28 @@ public class MainController {
                 "FROM 고객 c, 주문 o, 제품 p\n" +
                 "WHERE c.고객아이디 = o.주문고객 AND o.주문제품 = p.제품번호";
 
-        PreparedStatement ps = con.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
 
-        while (rs.next()) {
-            order = new Order(
-                    rs.getString("주문번호"),
-                    rs.getString("주문고객"),
-                    rs.getString("고객이름"),
-                    rs.getString("제품명"),
-                    rs.getInt("수량"),
-                    rs.getString("배송지"),
-                    rs.getDate("주문일자")
-            );
-            ordersList.add(order);
+            while (rs.next()) {
+                order = new Order(
+                        rs.getString("주문번호"),
+                        rs.getString("주문고객"),
+                        rs.getString("고객이름"),
+                        rs.getString("제품명"),
+                        rs.getInt("수량"),
+                        rs.getString("배송지"),
+                        rs.getDate("주문일자")
+                );
+                ordersList.add(order);
+            }
+            ps.close();
+            rs.close();
+        } catch (SQLException e) {
+            System.out.println("Statement or SQL Error");
+            throw new RuntimeException(e);
         }
-        ps.close();
-        rs.close();
         return ordersList;
     }
 
@@ -141,7 +202,6 @@ public class MainController {
         }
         view.printFoot();
     }
-
 
     public static void inputCustomerInfo(Connection con, Scanner sc) {
         InputCustomerInfoView iciv = new InputCustomerInfoView();
