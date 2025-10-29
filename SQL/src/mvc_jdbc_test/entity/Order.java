@@ -5,16 +5,14 @@ import java.util.Date;
 public class Order {
     private String orderId;
     private String customerId;
-    private String customerName;
     private String orderedProduct;
     private int amount;
     private String deliveryAddress;
     private Date orderDate;
 
-    public Order(String orderId, String customerId, String customerName, String orderedProduct, int amount, String deliveryAddress, Date orderDate) {
+    public Order(String orderId, String customerId, String orderedProduct, int amount, String deliveryAddress, Date orderDate) {
         this.orderId = orderId;
         this.customerId = customerId;
-        this.customerName = customerName;
         this.orderedProduct = orderedProduct;
         this.amount = amount;
         this.deliveryAddress = deliveryAddress;
@@ -23,10 +21,6 @@ public class Order {
 
     public String getOrderId() {
         return orderId;
-    }
-
-    public String getCustomerName() {
-        return customerName;
     }
 
     public String getCustomerId() {

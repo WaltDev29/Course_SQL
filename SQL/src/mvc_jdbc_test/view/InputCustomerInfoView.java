@@ -7,14 +7,15 @@ import java.util.Scanner;
 public class InputCustomerInfoView {
 
     public Customer inputCustomerInfo(Scanner sc) {
-        String customerId = "";
-        String customerName = "";
-        int customerAge = 0;
-        String customerGrade = "";
-        String customerJob = "";
-        int customerPoint = 0;
+        String customerId;
+        String customerName;
+        int customerAge;
+        String customerGrade;
+        String customerJob;
+        int customerPoint;
 
         System.out.println("\n고객 정보를 입력해주세요.");
+        System.out.println("(고객 아이디, 고객 이름, 고객 나이, 고객 등급, 고객 직업, 고객 적립금)");
         System.out.print("\n고객 아이디 : ");
         customerId = sc.nextLine();
         System.out.print("\n고객 이름 : ");
@@ -56,7 +57,6 @@ public class InputCustomerInfoView {
         System.out.println("고객 직업 : " + customerJob);
         System.out.println("고객 적립금 : " + customerPoint);
 
-        Customer customer = new Customer(customerId, customerName, customerAge, customerGrade, customerJob, customerPoint);
-        return customer;
+        return new Customer(customerId, customerName, customerAge, customerGrade, customerJob, customerPoint);
     }
 }

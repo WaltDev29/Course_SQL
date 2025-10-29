@@ -6,9 +6,13 @@ public abstract class ObjectView<T> {
 
     public abstract void printHead();
 
+    public abstract void printCols();
+
     public void printFoot() {
         System.out.println("\n========================");
         System.out.println("====== Print Done ======");
         System.out.println("========================\n");
     }
+
+    public abstract void printItemWithIndex(T item);
 }

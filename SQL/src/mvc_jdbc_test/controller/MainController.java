@@ -1,9 +1,6 @@
 package mvc_jdbc_test.controller;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -14,11 +11,10 @@ import mvc_jdbc_test.entity.Product;
 import mvc_jdbc_test.view.*;
 
 // todo
-
-// todo-later
-// 각 기능 화면 구현
-// 각 기능 구현
-// 각 기능의 state, answer 추가
+// UPDATE 함수 통합 검토
+// 기본 입력 예외처리 검토
+// pk 입력 부분 예외처리 적용
+// 분기 구조 검토 (중복 코드 줄이는 방향성)
 
 public class MainController {
     public static void main(String[] args) {
@@ -26,7 +22,6 @@ public class MainController {
         Scanner sc = new Scanner(System.in);
         Connection con;
         MainView mv = new MainView();
-        int mainState = 0;
 
         // 결과 담을 List 선언
         ArrayList<Customer> customerList;
@@ -36,53 +31,124 @@ public class MainController {
         // JDBC 연결
         con = JDBCConnector.getConnection();
 
+        int mainState = 0;
+        int subState = 0;
+        boolean quit = false;
         // 메인 프로그램
-        while (true) {
+        while (!quit) {
             switch (mainState) {
                 // 메인
                 case 0:
-                    mv.showMainView();
+                    mv.showHomeView();
                     mainState = mv.inputAnswer(sc, 0, 4);
-                    if (mainState == 0) mainState = -1;
+                    if (mainState == 0) quit = true;
                     break;
 
                 // 데이터 조회
                 case 1:
-                    mv.showQueryView();
-                    int queryState = mv.inputAnswer(sc, 1, 3);
-                    switch (queryState) {
+                    switch (subState) {
+                        case 0:
+                            mv.showMainView("조회");
+                            subState = mv.inputAnswer(sc, 0, 3);
+                            if (subState == 0) mainState = 0;
+                            break;
                         case 1:
-                            customerList = getCustomerList(con);
+                            customerList = getCustomerList(con, null);
                             printItemList(customerList, new CustomerView());
+                            mv.inputEnter(sc);
+                            subState = 0;
                             break;
                         case 2:
-                            productList = getProductList(con);
+                            productList = getProductList(con, null);
                             printItemList(productList, new ProductView());
+                            mv.inputEnter(sc);
+                            subState = 0;
                             break;
                         case 3:
-                            orderList = getOrderList(con);
+                            orderList = getOrderList(con, null);
                             printItemList(orderList, new OrderView());
+                            mv.inputEnter(sc);
+                            subState = 0;
                             break;
                     }
-                    inputEnter(sc);
-                    mainState = 0;
                     break;
 
                 // 데이터 추가 화면
                 case 2:
-                    mv.showInsertView();
-
-                    inputCustomerInfo(con, sc);
+                    switch (subState) {
+                        case 0:
+                            mv.showMainView("추가");
+                            subState = mv.inputAnswer(sc, 0, 3);
+                            if (subState == 0) mainState = 0;
+                            break;
+                        case 1:
+                            insertCustomerInfo(con, sc);
+                            mv.inputEnter(sc);
+                            subState = 0;
+                            break;
+                        case 2:
+                            insertProductInfo(con, sc);
+                            mv.inputEnter(sc);
+                            subState = 0;
+                            break;
+                        case 3:
+                            insertOrderInfo(con, sc);
+                            mv.inputEnter(sc);
+                            subState = 0;
+                            break;
+                    }
                     break;
 
                 // 데이터 수정 화면
                 case 3:
-                    mv.showUpdateView();
+                    switch (subState) {
+                        case 0:
+                            mv.showMainView("수정");
+                            subState = mv.inputAnswer(sc, 0, 3);
+                            if (subState == 0) mainState = 0;
+                            break;
+                        case 1:
+                            updateCustomerInfo(con, sc);
+                            mv.inputEnter(sc);
+                            subState = 0;
+                            break;
+                        case 2:
+                            updateProductInfo(con, sc);
+                            mv.inputEnter(sc);
+                            subState = 0;
+                            break;
+                        case 3:
+                            updateOrderInfo(con,sc);
+                            mv.inputEnter(sc);
+                            subState = 0;
+                            break;
+                    }
                     break;
 
                 // 데이터 삭제 화면
                 case 4:
-                    mv.showDeleteView();
+                    switch (subState) {
+                        case 0:
+                            mv.showMainView("삭제");
+                            subState = mv.inputAnswer(sc, 0, 3);
+                            if (subState == 0) mainState = 0;
+                            break;
+                        case 1:
+                            deleteInfo(con, sc, "고객", "고객아이디", subState);
+                            mv.inputEnter(sc);
+                            subState = 0;
+                            break;
+                        case 2:
+                            deleteInfo(con, sc, "제품", "제품번호", subState);
+                            mv.inputEnter(sc);
+                            subState = 0;
+                            break;
+                        case 3:
+                            deleteInfo(con, sc, "주문", "주문번호", subState);
+                            mv.inputEnter(sc);
+                            subState = 0;
+                            break;
+                    }
                     break;
 
                 default:
@@ -95,18 +161,52 @@ public class MainController {
         sc.close();
     }
 
-    public static void inputEnter(Scanner sc) {
-        System.out.println("Enter를 눌러 처음으로");
-        sc.nextLine();
+    // Validate
+    public static boolean validateCustomerPk(ArrayList<Customer> customerList, String pk) {
+        for (Customer c : customerList) if (c.getId().equalsIgnoreCase(pk)) return true;
+        return false;
     }
 
-    public static ArrayList<Customer> getCustomerList(Connection con) {
+    public static boolean validateProductPk(ArrayList<Product> productList, String pk) {
+        for (Product p : productList) if (p.getProductId().equalsIgnoreCase(pk)) return true;
+        return false;
+    }
+
+    public static boolean validateOrderPk(ArrayList<Order> orderList, String pk) {
+        for (Order o : orderList) if (o.getOrderId().equalsIgnoreCase(pk)) return true;
+        return false;
+    }
+
+
+    // Print
+    public static <T> void printItem(T item, ObjectView<T> view) {
+        view.printHead();
+        view.printCols();
+        view.printItem(item);
+        System.out.println();
+    }
+
+    public static <T> void printItemList(ArrayList<T> itemList, ObjectView<T> view) {
+        view.printHead();
+        view.printCols();
+        for (T item : itemList) {
+            view.printItem(item);
+            System.out.println();
+        }
+        view.printFoot();
+    }
+
+    // SELECT
+    public static ArrayList<Customer> getCustomerList(Connection con, String target) {
         ArrayList<Customer> customerList = new ArrayList<>();
         Customer customer;
+        String sql;
 
-        String sql = "SELECT * FROM 고객";
+        if (target != null) sql = "SELECT * FROM 고객 WHERE 고객아이디 = ?";
+        else sql = "SELECT * FROM 고객";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
+            if (target != null) ps.setString(1, target);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -130,13 +230,16 @@ public class MainController {
         return customerList;
     }
 
-    public static ArrayList<Product> getProductList(Connection con) {
+    public static ArrayList<Product> getProductList(Connection con, String target) {
         ArrayList<Product> productList = new ArrayList<>();
         Product product;
-        String sql = "SELECT * FROM 제품";
+        String sql;
 
+        if (target != null) sql = "SELECT * FROM 제품 WHERE 제품번호 = ?";
+        else sql = "SELECT * FROM 제품";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
+            if (target != null) ps.setString(1, target);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -161,24 +264,23 @@ public class MainController {
         return productList;
     }
 
-    public static ArrayList<Order> getOrderList(Connection con) {
+    public static ArrayList<Order> getOrderList(Connection con, String target) {
         ArrayList<Order> ordersList = new ArrayList<>();
         Order order;
+        String sql;
 
-        String sql = "SELECT o.주문번호, o.주문고객, c.고객이름, p.제품명, o.수량, o.배송지, o.주문일자\n" +
-                "FROM 고객 c, 주문 o, 제품 p\n" +
-                "WHERE c.고객아이디 = o.주문고객 AND o.주문제품 = p.제품번호";
-
+        if (target != null) sql = "SELECT * FROM 주문 WHERE 주문번호 = ?";
+        else sql = "SELECT * FROM 주문";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
+            if (target != null) ps.setString(1, target);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 order = new Order(
                         rs.getString("주문번호"),
                         rs.getString("주문고객"),
-                        rs.getString("고객이름"),
-                        rs.getString("제품명"),
+                        rs.getString("주문제품"),
                         rs.getInt("수량"),
                         rs.getString("배송지"),
                         rs.getDate("주문일자")
@@ -194,34 +296,18 @@ public class MainController {
         return ordersList;
     }
 
-    public static <T> void printItemList(ArrayList<T> itemList, ObjectView<T> view) {
-        view.printHead();
-        for (T item : itemList) {
-            view.printItem(item);
-            System.out.println();
-        }
-        view.printFoot();
-    }
 
-    public static void inputCustomerInfo(Connection con, Scanner sc) {
+    // INSERT
+    public static void insertCustomerInfo(Connection con, Scanner sc) {
+        MainView mv = new MainView();
         InputCustomerInfoView iciv = new InputCustomerInfoView();
         ArrayList<Customer> inputCustomerList = new ArrayList<>();
-        String answer;
 
         while (true) {
             Customer customer = iciv.inputCustomerInfo(sc);
 
             // 데이터 저장 여부 확인
-            while (true) {
-                System.out.println("\n데이터 저장 : S\n다시 입력 : R");
-                System.out.print("입력 : ");
-                answer = sc.nextLine();
-
-                if (answer.equalsIgnoreCase("S")) break;
-                else if (answer.equalsIgnoreCase("R")) break;
-                else System.out.println("잘못된 입력입니다. 다시 입력해주세요.\n");
-            }
-            if (answer.equalsIgnoreCase("R")) continue;
+            if (!mv.askYorN(sc, "데이터 저장", "S", "다시 입력", "R")) continue;
 
             // 데이터 INSERT
             try {
@@ -239,24 +325,302 @@ public class MainController {
                 System.out.println("Statement or SQL Error");
                 throw new RuntimeException(e);
             }
+            System.out.println("데이터가 저장되었습니다.\n");
             inputCustomerList.add(customer);
 
             // 계속 입력받을지 선택
-            while (true) {
-                System.out.println("\n계속 입력 : C\n입력 종료 : E");
-                System.out.print("입력 : ");
-                answer = sc.nextLine();
-
-                if (answer.equalsIgnoreCase("E")) break;
-                else if (answer.equalsIgnoreCase("C")) break;
-                else System.out.println("잘못된 입력입니다. 다시 입력해주세요.\n");
-            }
-            if (answer.equalsIgnoreCase("E")) break;
+            if (!mv.askYorN(sc, "계속 입력", "C", "입력 종료", "E")) break;
         }
 
         // 입력 내용 출력
-        System.out.println("입력 종료");
+        System.out.println("\n--- 입력 종료 ---");
         System.out.println("====== 입력 내용 ======\n");
         printItemList(inputCustomerList, new CustomerView());
+    }
+
+    public static void insertProductInfo(Connection con, Scanner sc) {
+        MainView mv = new MainView();
+        InputProductInfoView ipiv = new InputProductInfoView();
+        ArrayList<Product> inputProductList = new ArrayList<>();
+
+        while (true) {
+            Product product = ipiv.inputProductInfo(sc);
+
+            // 데이터 저장 여부 확인
+            if (!mv.askYorN(sc, "데이터 저장", "S", "다시 입력", "R")) continue;
+
+            // 데이터 INSERT
+            try {
+                String sql = "INSERT INTO 제품 VALUES(?,?,?,?,?)";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.setString(1, product.getProductId());
+                ps.setString(2, product.getProductName());
+                ps.setInt(3, product.getProductAmount());
+                ps.setInt(4, product.getProductPrice());
+                ps.setString(5, product.getManufacturer());
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                System.out.println("Statement or SQL Error");
+                throw new RuntimeException(e);
+            }
+            System.out.println("데이터가 저장되었습니다.\n");
+            inputProductList.add(product);
+
+            // 계속 입력받을지 선택
+            if (!mv.askYorN(sc, "계속 입력", "C", "입력 종료", "E")) break;
+        }
+
+        // 입력 내용 출력
+        System.out.println("\n--- 입력 종료 ---");
+        System.out.println("====== 입력 내용 ======\n");
+        printItemList(inputProductList, new ProductView());
+    }
+
+    public static void insertOrderInfo(Connection con, Scanner sc) {
+        MainView mv = new MainView();
+        InputOrderInfoView ioiv = new InputOrderInfoView();
+        ArrayList<Order> inputOrderList = new ArrayList<>();
+
+        while (true) {
+            Order order = ioiv.inputOrderInfo(sc);
+
+            // 데이터 저장 여부 확인
+            if (!mv.askYorN(sc, "데이터 저장", "S", "다시 입력", "R")) continue;
+
+//            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//            Date date = Date.valueOf(sdf.format(order.getOrderDate()));
+            java.sql.Date date = new Date(order.getOrderDate().getTime());
+
+            // 데이터 INSERT
+            try {
+                String sql = "INSERT INTO 주문 VALUES(?,?,?,?,?,?)";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.setString(1, order.getOrderId());
+                ps.setString(2, order.getCustomerId());
+                ps.setString(3, order.getOrderedProduct());
+                ps.setInt(4, order.getAmount());
+                ps.setString(5, order.getDeliveryAddress());
+                ps.setDate(6, date);
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                System.out.println("Statement or SQL Error");
+                throw new RuntimeException(e);
+            }
+            System.out.println("데이터가 저장되었습니다.\n");
+            inputOrderList.add(order);
+
+            // 계속 입력받을지 선택
+            if (!mv.askYorN(sc, "계속 입력", "C", "입력 종료", "E")) break;
+        }
+
+        // 입력 내용 출력
+        System.out.println("\n--- 입력 종료 ---");
+        System.out.println("====== 입력 내용 ======\n");
+        printItemList(inputOrderList, new OrderView());
+    }
+
+
+    // UPDATE
+    public static void updateCustomerInfo(Connection con, Scanner sc) {
+        MainView mv = new MainView();
+        CustomerView cv = new CustomerView();
+        String pk;
+        int index;
+        String value = "";
+        int valueInt = 0;
+        String[] cols = {"고객이름", "나이", "등급", "직업", "적립금"};
+
+        ArrayList<Customer> customerList = getCustomerList(con, null);
+        printItemList(customerList, new CustomerView());
+
+        System.out.println("수정할 고객의 고객 아이디를 입력하세요.");
+        while (true) {
+            System.out.print("고객 아이디 : ");
+            pk = sc.nextLine();
+            if (validateCustomerPk(customerList, pk)) break;
+            else System.out.println("존재하지 않는 고객 아이디입니다. 다시 입력해주세요.\n");
+        }
+
+        customerList = getCustomerList(con, pk);
+        cv.printItemWithIndex(customerList.get(0));
+
+        System.out.println("\n수정할 항목의 번호를 입력해주세요.");
+
+        index = mv.inputAnswer(sc,1,cols.length);
+
+        System.out.printf("\n수정할 %s 입력 : ", cols[index - 1]);
+        if (index == 1 || index == 5) valueInt = mv.inputAnswer(sc, 0, 100000);
+        else value = sc.nextLine();
+
+
+        String sql = "UPDATE 고객 SET " + cols[index - 1] + " = ? WHERE 고객아이디 = ?";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            if (index == 1 || index == 5) ps.setInt(1,valueInt);
+            else ps.setString(1, value);
+            ps.setString(2, pk);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println("Statement or SQL Error");
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("\n수정이 완료되었습니다.");
+
+    }
+
+    public static void updateProductInfo(Connection con, Scanner sc) {
+        MainView mv = new MainView();
+        ProductView pv = new ProductView();
+        String pk;
+        int index;
+        String value = "";
+        int valueInt = 0;
+        String[] cols = {"제품명", "재고량", "단가", "제조업체"};
+
+        ArrayList<Product> productList = getProductList(con, null);
+        printItemList(productList, new ProductView());
+
+        System.out.println("수정할 제품의 제품 번호를 입력하세요.");
+        while (true) {
+            System.out.print("제품 번호 : ");
+            pk = sc.nextLine();
+            if (validateProductPk(productList, pk)) break;
+            else System.out.println("존재하지 않는 고객 아이디입니다. 다시 입력해주세요.\n");
+        }
+
+        productList = getProductList(con, pk);
+        pv.printItemWithIndex(productList.get(0));
+
+        System.out.println("\n수정할 항목의 번호를 입력해주세요.");
+
+        index = mv.inputAnswer(sc,1,cols.length);
+
+        System.out.printf("\n수정할 %s 입력 : ", cols[index - 1]);
+        if (index == 1 || index == 2) valueInt = mv.inputAnswer(sc, 0, 100000);
+        else value = sc.nextLine();
+
+
+        String sql = "UPDATE 제품 SET " + cols[index - 1] + " = ? WHERE 제품번호 = ?";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            if (index == 1 || index == 2) ps.setInt(1,valueInt);
+            else ps.setString(1, value);
+            ps.setString(2, pk);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println("Statement or SQL Error");
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("\n수정이 완료되었습니다.");
+
+    }
+
+    public static void updateOrderInfo(Connection con, Scanner sc) {
+        MainView mv = new MainView();
+        OrderView ov = new OrderView();
+        String pk;
+        int index;
+        String value = "";
+        int valueInt = 0;
+        String[] cols = {"제품명", "배송지", "수량", "주문일자"};
+
+        ArrayList<Order> orderList = getOrderList(con, null);
+        printItemList(orderList, new OrderView());
+
+        System.out.println("수정할 주문의 주문 번호를 입력하세요.");
+        while (true) {
+            System.out.print("주문 번호 : ");
+            pk = sc.nextLine();
+            if (validateOrderPk(orderList, pk)) break;
+            else System.out.println("존재하지 않는 주문 번호입니다. 다시 입력해주세요.\n");
+        }
+
+        orderList = getOrderList(con, pk);
+        ov.printItemWithIndex(orderList.get(0));
+
+        System.out.println("\n수정할 항목의 번호를 입력해주세요.");
+
+        index = mv.inputAnswer(sc,1,cols.length);
+
+        System.out.printf("\n수정할 %s 입력 : ", cols[index - 1]);
+        if (index == 3) valueInt = mv.inputAnswer(sc, 0, 100000);
+        else value = sc.nextLine();
+
+
+        String sql = "UPDATE 주문 SET " + cols[index - 1] + " = ? WHERE 주문번호 = ?";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            if (index == 3) ps.setInt(1,valueInt);
+            else ps.setString(1, value);
+            ps.setString(2, pk);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println("Statement or SQL Error");
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("\n수정이 완료되었습니다.");
+
+    }
+
+
+    // DELETE
+    public static void deleteInfo(Connection con, Scanner sc, String table, String pk, int subState) {
+        MainView mv = new MainView();
+        boolean yn;
+
+        ArrayList<Customer> customerList;
+        ArrayList<Product> productList;
+        ArrayList<Order> orderList;
+
+        if (subState == 1) {
+            customerList = getCustomerList(con, null);
+            printItemList(customerList, new CustomerView());
+        } else if (subState == 2) {
+            productList = getProductList(con, null);
+            printItemList(productList, new ProductView());
+        } else if (subState == 3) {
+            orderList = getOrderList(con, null);
+            printItemList(orderList, new OrderView());
+        }
+
+        System.out.println("삭제할 " + table + "의 " + pk + "를 입력해주세요.");
+        System.out.print(pk + " : ");
+        String target = sc.nextLine().trim();
+
+        if (subState == 1) {
+            customerList = getCustomerList(con, target);
+            printItem(customerList.get(0), new CustomerView());
+        } else if (subState == 2) {
+            productList = getProductList(con, target);
+            printItem(productList.get(0), new ProductView());
+        } else if (subState == 3) {
+            orderList = getOrderList(con, target);
+            printItem(orderList.get(0), new OrderView());
+        }
+
+        System.out.println("\n해당 데이터를 삭제하시겠습니까?");
+        yn = mv.askYorN(sc, "삭제", "Y", "취소", "N");
+        if (yn) {
+            String sql = "DELETE FROM " + table + " WHERE " + pk + " = ?";
+
+            try {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.setString(1, target);
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                System.out.println("Statement or SQL Error");
+                throw new RuntimeException(e);
+            }
+        }
+        System.out.println("\n데이터가 삭제되었습니다.");
     }
 }
