@@ -14,7 +14,6 @@ import mvc_jdbc_test.entity.Product;
 import mvc_jdbc_test.view.*;
 
 // todo
-// 각 View 컬럼 길이 맞추기
 
 // todo-later
 // 각 기능 화면 구현
@@ -137,22 +136,22 @@ public class MainController {
         String sql = "SELECT * FROM 제품";
 
         try {
-        PreparedStatement ps = con.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
 
-        while (rs.next()) {
-            product = new Product(
-                    rs.getString("제품번호"),
-                    rs.getString("제품명"),
-                    rs.getInt("재고량"),
-                    rs.getInt("단가"),
-                    rs.getString("제조업체")
-            );
-            productList.add(product);
-        }
+            while (rs.next()) {
+                product = new Product(
+                        rs.getString("제품번호"),
+                        rs.getString("제품명"),
+                        rs.getInt("재고량"),
+                        rs.getInt("단가"),
+                        rs.getString("제조업체")
+                );
+                productList.add(product);
+            }
 
-        ps.close();
-        rs.close();
+            ps.close();
+            rs.close();
 
         } catch (SQLException e) {
             System.out.println("Statement or SQL Error");
@@ -161,6 +160,7 @@ public class MainController {
 
         return productList;
     }
+
     public static ArrayList<Order> getOrderList(Connection con) {
         ArrayList<Order> ordersList = new ArrayList<>();
         Order order;

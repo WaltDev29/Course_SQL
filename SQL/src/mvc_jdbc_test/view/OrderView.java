@@ -16,10 +16,10 @@ public class OrderView extends ObjectView<Order> {
     @Override
     public void printItem(Order order) {
         System.out.printf("%-6s ", order.getCustomerName());
-        System.out.printf("%-10s ", order.getCustomerId());
+        System.out.printf("%-13s ", order.getCustomerId());
         System.out.printf("%-10s ", order.getOrderedProduct());
-        System.out.printf("%-15s ", order.getDeliveryAddress());
-        System.out.printf("%-4d ", order.getAmount());
+        System.out.printf("%-13s ", order.getDeliveryAddress());
+        System.out.printf("%-5d ", order.getAmount());
         System.out.printf("%-10s ", order.getOrderDate());
     }
 }

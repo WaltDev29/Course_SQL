@@ -16,9 +16,9 @@ public class CustomerView extends ObjectView<Customer> {
     @Override
     public void printItem(Customer customer) {
         System.out.printf("%-14s ", customer.getId());
-        System.out.printf("%-8s ", customer.getName());
-        System.out.printf("%-4d ", customer.getAge());
-        System.out.printf("%-10s ", customer.getGrade());
+        System.out.printf("%-10s ", customer.getName());
+        System.out.printf("%-5d ", customer.getAge());
+        System.out.printf("%-11s ", customer.getGrade());
         System.out.printf("%-10s ", customer.getJob());
         System.out.printf("%-8d ", customer.getPoint());
     }
