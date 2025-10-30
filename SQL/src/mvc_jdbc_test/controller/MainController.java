@@ -13,7 +13,6 @@ import mvc_jdbc_test.view.*;
 
 // todo
 // 기본 입력 예외처리 검토
-// pk 입력 부분 예외처리 적용
 // 분기 구조 검토 (중복 코드 줄이는 방향성)
 
 public class MainController {
@@ -118,7 +117,7 @@ public class MainController {
                             subState = 0;
                             break;
                         case 3:
-                            updateOrderInfo(con,sc);
+                            updateOrderInfo(con, sc);
                             mv.inputEnter(sc);
                             subState = 0;
                             break;
@@ -438,7 +437,7 @@ public class MainController {
 
         System.out.println("\n수정할 항목의 번호를 입력해주세요.");
 
-        index = mv.inputAnswer(sc,1,cols.length);
+        index = mv.inputAnswer(sc, 1, cols.length);
 
         System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
         if (index == 1 || index == 5) valueInt = mv.inputAnswer(sc, 0, 100000);
@@ -448,7 +447,7 @@ public class MainController {
         String sql = "UPDATE 고객 SET " + cols[index - 1] + " = ? WHERE 고객아이디 = ?";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
-            if (index == 1 || index == 5) ps.setInt(1,valueInt);
+            if (index == 1 || index == 5) ps.setInt(1, valueInt);
             else ps.setString(1, value);
             ps.setString(2, pk);
             ps.executeUpdate();
@@ -487,7 +486,7 @@ public class MainController {
 
         System.out.println("\n수정할 항목의 번호를 입력해주세요.");
 
-        index = mv.inputAnswer(sc,1,cols.length);
+        index = mv.inputAnswer(sc, 1, cols.length);
 
         System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
         if (index == 1 || index == 2) valueInt = mv.inputAnswer(sc, 0, 100000);
@@ -497,7 +496,7 @@ public class MainController {
         String sql = "UPDATE 제품 SET " + cols[index - 1] + " = ? WHERE 제품번호 = ?";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
-            if (index == 1 || index == 2) ps.setInt(1,valueInt);
+            if (index == 1 || index == 2) ps.setInt(1, valueInt);
             else ps.setString(1, value);
             ps.setString(2, pk);
             ps.executeUpdate();
@@ -536,7 +535,7 @@ public class MainController {
 
         System.out.println("\n수정할 항목의 번호를 입력해주세요.");
 
-        index = mv.inputAnswer(sc,1,cols.length);
+        index = mv.inputAnswer(sc, 1, cols.length);
 
         System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
         if (index == 3) valueInt = mv.inputAnswer(sc, 0, 100000);
@@ -546,7 +545,7 @@ public class MainController {
         String sql = "UPDATE 주문 SET " + cols[index - 1] + " = ? WHERE 주문번호 = ?";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
-            if (index == 3) ps.setInt(1,valueInt);
+            if (index == 3) ps.setInt(1, valueInt);
             else ps.setString(1, value);
             ps.setString(2, pk);
             ps.executeUpdate();
@@ -566,9 +565,9 @@ public class MainController {
         MainView mv = new MainView();
         boolean yn;
 
-        ArrayList<Customer> customerList;
-        ArrayList<Product> productList;
-        ArrayList<Order> orderList;
+        ArrayList<Customer> customerList = null;
+        ArrayList<Product> productList = null;
+        ArrayList<Order> orderList = null;
 
         if (subState == 1) {
             customerList = getCustomerList(con, null);
@@ -581,9 +580,20 @@ public class MainController {
             printItemList(orderList, new OrderView());
         }
 
-        System.out.println("삭제할 " + table + "의 " + pk + "를 입력해주세요.");
-        System.out.print(pk + " : ");
-        String target = sc.nextLine().trim();
+        String target;
+        while (true) {
+            System.out.println("삭제할 " + table + "의 " + pk + "를 입력해주세요.");
+            System.out.print(pk + " : ");
+            target = sc.nextLine().trim();
+            if (subState == 1) {
+                if (validatePk(customerList, target)) break;
+            } else if (subState == 2) {
+                if (validatePk(productList, target)) break;
+            } else if (subState == 3) {
+                if (validatePk(orderList, target)) break;
+            }
+            System.out.println("\n해당 " + pk + "가 존재하지 않습니다. 다시 입력해주세요.\n");
+        }
 
         if (subState == 1) {
             customerList = getCustomerList(con, target);
@@ -610,7 +620,7 @@ public class MainController {
                 System.out.println("Statement or SQL Error");
                 throw new RuntimeException(e);
             }
+            System.out.println("\n데이터가 삭제되었습니다.");
         }
-        System.out.println("\n데이터가 삭제되었습니다.");
     }
 }
