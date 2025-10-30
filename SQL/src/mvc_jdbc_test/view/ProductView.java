@@ -18,7 +18,7 @@ public class ProductView extends ObjectView<Product> {
 
     @Override
     public void printItem(Product product) {
-        System.out.printf("%-10s ", product.getProductId());
+        System.out.printf("%-10s ", product.getId());
         System.out.printf("%-12s ", product.getProductName());
         System.out.printf("%-10d ", product.getProductAmount());
         System.out.printf("%-11d ", product.getProductPrice());

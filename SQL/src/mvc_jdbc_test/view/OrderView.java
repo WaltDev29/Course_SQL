@@ -18,7 +18,7 @@ public class OrderView extends ObjectView<Order> {
 
     @Override
     public void printItem(Order order) {
-        System.out.printf("%-7s", order.getOrderId());
+        System.out.printf("%-7s", order.getId());
         System.out.printf("%-13s ", order.getCustomerId());
         System.out.printf("%-10s ", order.getOrderedProduct());
         System.out.printf("%-13s ", order.getDeliveryAddress());

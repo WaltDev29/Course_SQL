@@ -2,16 +2,16 @@ package mvc_jdbc_test.entity;
 
 import java.util.Date;
 
-public class Order {
-    private String orderId;
+public class Order extends Entity {
+    private String id;
     private String customerId;
     private String orderedProduct;
     private int amount;
     private String deliveryAddress;
     private Date orderDate;
 
-    public Order(String orderId, String customerId, String orderedProduct, int amount, String deliveryAddress, Date orderDate) {
-        this.orderId = orderId;
+    public Order(String id, String customerId, String orderedProduct, int amount, String deliveryAddress, Date orderDate) {
+        this.id = id;
         this.customerId = customerId;
         this.orderedProduct = orderedProduct;
         this.amount = amount;
@@ -19,8 +19,8 @@ public class Order {
         this.orderDate = orderDate;
     }
 
-    public String getOrderId() {
-        return orderId;
+    public String getId() {
+        return id;
     }
 
     public String getCustomerId() {

@@ -1,6 +1,6 @@
 package mvc_jdbc_test.entity;
 
-public class Customer {
+public class Customer extends Entity {
     String id;
     String name;
     int age;

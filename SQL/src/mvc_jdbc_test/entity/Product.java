@@ -1,22 +1,22 @@
 package mvc_jdbc_test.entity;
 
-public class Product {
-    String productId;
+public class Product extends Entity{
+    String id;
     String productName;
     int productAmount;
     int productPrice;
     String manufacturer;
 
-    public Product(String productId, String productName, int productAmount, int productPrice, String manufacturer) {
-        this.productId = productId;
+    public Product(String id, String productName, int productAmount, int productPrice, String manufacturer) {
+        this.id = id;
         this.productName = productName;
         this.productAmount = productAmount;
         this.productPrice = productPrice;
         this.manufacturer = manufacturer;
     }
 
-    public String getProductId() {
-        return productId;
+    public String getId() {
+        return id;
     }
 
     public String getProductName() {

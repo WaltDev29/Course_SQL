@@ -6,12 +6,12 @@ import java.util.Scanner;
 
 import jdbc_test.JDBCConnector;
 import mvc_jdbc_test.entity.Customer;
+import mvc_jdbc_test.entity.Entity;
 import mvc_jdbc_test.entity.Order;
 import mvc_jdbc_test.entity.Product;
 import mvc_jdbc_test.view.*;
 
 // todo
-// UPDATE 함수 통합 검토
 // 기본 입력 예외처리 검토
 // pk 입력 부분 예외처리 적용
 // 분기 구조 검토 (중복 코드 줄이는 방향성)
@@ -162,31 +162,21 @@ public class MainController {
     }
 
     // Validate
-    public static boolean validateCustomerPk(ArrayList<Customer> customerList, String pk) {
-        for (Customer c : customerList) if (c.getId().equalsIgnoreCase(pk)) return true;
-        return false;
-    }
-
-    public static boolean validateProductPk(ArrayList<Product> productList, String pk) {
-        for (Product p : productList) if (p.getProductId().equalsIgnoreCase(pk)) return true;
-        return false;
-    }
-
-    public static boolean validateOrderPk(ArrayList<Order> orderList, String pk) {
-        for (Order o : orderList) if (o.getOrderId().equalsIgnoreCase(pk)) return true;
+    private static boolean validatePk(ArrayList<? extends Entity> EntityList, String pk) {
+        for (Entity e : EntityList) if (e.getId().equalsIgnoreCase(pk)) return true;
         return false;
     }
 
 
     // Print
-    public static <T> void printItem(T item, ObjectView<T> view) {
+    private static <T> void printItem(T item, ObjectView<T> view) {
         view.printHead();
         view.printCols();
         view.printItem(item);
         System.out.println();
     }
 
-    public static <T> void printItemList(ArrayList<T> itemList, ObjectView<T> view) {
+    private static <T> void printItemList(ArrayList<T> itemList, ObjectView<T> view) {
         view.printHead();
         view.printCols();
         for (T item : itemList) {
@@ -197,7 +187,7 @@ public class MainController {
     }
 
     // SELECT
-    public static ArrayList<Customer> getCustomerList(Connection con, String target) {
+    private static ArrayList<Customer> getCustomerList(Connection con, String target) {
         ArrayList<Customer> customerList = new ArrayList<>();
         Customer customer;
         String sql;
@@ -230,7 +220,7 @@ public class MainController {
         return customerList;
     }
 
-    public static ArrayList<Product> getProductList(Connection con, String target) {
+    private static ArrayList<Product> getProductList(Connection con, String target) {
         ArrayList<Product> productList = new ArrayList<>();
         Product product;
         String sql;
@@ -264,7 +254,7 @@ public class MainController {
         return productList;
     }
 
-    public static ArrayList<Order> getOrderList(Connection con, String target) {
+    private static ArrayList<Order> getOrderList(Connection con, String target) {
         ArrayList<Order> ordersList = new ArrayList<>();
         Order order;
         String sql;
@@ -298,7 +288,7 @@ public class MainController {
 
 
     // INSERT
-    public static void insertCustomerInfo(Connection con, Scanner sc) {
+    private static void insertCustomerInfo(Connection con, Scanner sc) {
         MainView mv = new MainView();
         InputCustomerInfoView iciv = new InputCustomerInfoView();
         ArrayList<Customer> inputCustomerList = new ArrayList<>();
@@ -338,7 +328,7 @@ public class MainController {
         printItemList(inputCustomerList, new CustomerView());
     }
 
-    public static void insertProductInfo(Connection con, Scanner sc) {
+    private static void insertProductInfo(Connection con, Scanner sc) {
         MainView mv = new MainView();
         InputProductInfoView ipiv = new InputProductInfoView();
         ArrayList<Product> inputProductList = new ArrayList<>();
@@ -353,7 +343,7 @@ public class MainController {
             try {
                 String sql = "INSERT INTO 제품 VALUES(?,?,?,?,?)";
                 PreparedStatement ps = con.prepareStatement(sql);
-                ps.setString(1, product.getProductId());
+                ps.setString(1, product.getId());
                 ps.setString(2, product.getProductName());
                 ps.setInt(3, product.getProductAmount());
                 ps.setInt(4, product.getProductPrice());
@@ -377,7 +367,7 @@ public class MainController {
         printItemList(inputProductList, new ProductView());
     }
 
-    public static void insertOrderInfo(Connection con, Scanner sc) {
+    private static void insertOrderInfo(Connection con, Scanner sc) {
         MainView mv = new MainView();
         InputOrderInfoView ioiv = new InputOrderInfoView();
         ArrayList<Order> inputOrderList = new ArrayList<>();
@@ -396,7 +386,7 @@ public class MainController {
             try {
                 String sql = "INSERT INTO 주문 VALUES(?,?,?,?,?,?)";
                 PreparedStatement ps = con.prepareStatement(sql);
-                ps.setString(1, order.getOrderId());
+                ps.setString(1, order.getId());
                 ps.setString(2, order.getCustomerId());
                 ps.setString(3, order.getOrderedProduct());
                 ps.setInt(4, order.getAmount());
@@ -423,7 +413,7 @@ public class MainController {
 
 
     // UPDATE
-    public static void updateCustomerInfo(Connection con, Scanner sc) {
+    private static void updateCustomerInfo(Connection con, Scanner sc) {
         MainView mv = new MainView();
         CustomerView cv = new CustomerView();
         String pk;
@@ -439,7 +429,7 @@ public class MainController {
         while (true) {
             System.out.print("고객 아이디 : ");
             pk = sc.nextLine();
-            if (validateCustomerPk(customerList, pk)) break;
+            if (validatePk(customerList, pk)) break;
             else System.out.println("존재하지 않는 고객 아이디입니다. 다시 입력해주세요.\n");
         }
 
@@ -450,7 +440,7 @@ public class MainController {
 
         index = mv.inputAnswer(sc,1,cols.length);
 
-        System.out.printf("\n수정할 %s 입력 : ", cols[index - 1]);
+        System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
         if (index == 1 || index == 5) valueInt = mv.inputAnswer(sc, 0, 100000);
         else value = sc.nextLine();
 
@@ -472,7 +462,7 @@ public class MainController {
 
     }
 
-    public static void updateProductInfo(Connection con, Scanner sc) {
+    private static void updateProductInfo(Connection con, Scanner sc) {
         MainView mv = new MainView();
         ProductView pv = new ProductView();
         String pk;
@@ -488,7 +478,7 @@ public class MainController {
         while (true) {
             System.out.print("제품 번호 : ");
             pk = sc.nextLine();
-            if (validateProductPk(productList, pk)) break;
+            if (validatePk(productList, pk)) break;
             else System.out.println("존재하지 않는 고객 아이디입니다. 다시 입력해주세요.\n");
         }
 
@@ -499,7 +489,7 @@ public class MainController {
 
         index = mv.inputAnswer(sc,1,cols.length);
 
-        System.out.printf("\n수정할 %s 입력 : ", cols[index - 1]);
+        System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
         if (index == 1 || index == 2) valueInt = mv.inputAnswer(sc, 0, 100000);
         else value = sc.nextLine();
 
@@ -521,7 +511,7 @@ public class MainController {
 
     }
 
-    public static void updateOrderInfo(Connection con, Scanner sc) {
+    private static void updateOrderInfo(Connection con, Scanner sc) {
         MainView mv = new MainView();
         OrderView ov = new OrderView();
         String pk;
@@ -537,7 +527,7 @@ public class MainController {
         while (true) {
             System.out.print("주문 번호 : ");
             pk = sc.nextLine();
-            if (validateOrderPk(orderList, pk)) break;
+            if (validatePk(orderList, pk)) break;
             else System.out.println("존재하지 않는 주문 번호입니다. 다시 입력해주세요.\n");
         }
 
@@ -548,7 +538,7 @@ public class MainController {
 
         index = mv.inputAnswer(sc,1,cols.length);
 
-        System.out.printf("\n수정할 %s 입력 : ", cols[index - 1]);
+        System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
         if (index == 3) valueInt = mv.inputAnswer(sc, 0, 100000);
         else value = sc.nextLine();
 
@@ -572,7 +562,7 @@ public class MainController {
 
 
     // DELETE
-    public static void deleteInfo(Connection con, Scanner sc, String table, String pk, int subState) {
+    private static void deleteInfo(Connection con, Scanner sc, String table, String pk, int subState) {
         MainView mv = new MainView();
         boolean yn;
 
