@@ -31,6 +31,6 @@ public class OrderView extends ObjectView<Order> {
         System.out.printf("1. 제품명 : %s", order.getOrderedProduct());
         System.out.printf("2. 배송지 : %s", order.getDeliveryAddress());
         System.out.printf("3. 수량 : %d", order.getAmount());
-        System.out.printf("4. 주문일자 : %s", order.getOrderDate());
+        System.out.printf("4. 주문일자 : %s\n", order.getOrderDate());
     }
 }

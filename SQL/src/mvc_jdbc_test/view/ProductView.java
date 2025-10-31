@@ -30,6 +30,6 @@ public class ProductView extends ObjectView<Product> {
         System.out.printf("1. 제품명 : %s", product.getProductName());
         System.out.printf("2. 재고량 : %d", product.getProductAmount());
         System.out.printf("3. 단가 : %d", product.getProductPrice());
-        System.out.printf("4. 제조업체 : %s", product.getManufacturer());
+        System.out.printf("4. 제조업체 : %s\n", product.getManufacturer());
     }
 }

@@ -432,9 +432,11 @@ public class MainController {
         customerList = getCustomerList(con, pk);
         cv.printItemWithIndex(customerList.get(0));
 
-        System.out.println("\n수정할 항목의 번호를 입력해주세요.");
+        System.out.println("\n수정할 항목의 번호를 입력해주세요. 수정취소 : 0");
 
-        index = mv.inputAnswer(sc, 1, cols.length);
+        index = mv.inputAnswer(sc, 0, cols.length);
+
+        if (index == 0) return;
 
         System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
         if (index == 2 || index == 5) valueInt = mv.inputAnswer(sc, 0, 100000);
@@ -481,15 +483,17 @@ public class MainController {
             System.out.print("제품 번호 : ");
             pk = sc.nextLine();
             if (validatePk(productList, pk)) break;
-            else System.out.println("존재하지 않는 고객 아이디입니다. 다시 입력해주세요.\n");
+            else System.out.println("존재하지 않는 제품 번호입니다. 다시 입력해주세요.\n");
         }
 
         productList = getProductList(con, pk);
         pv.printItemWithIndex(productList.get(0));
 
-        System.out.println("\n수정할 항목의 번호를 입력해주세요.");
+        System.out.println("\n수정할 항목의 번호를 입력해주세요. 수정취소 : 0");
 
         index = mv.inputAnswer(sc, 1, cols.length);
+
+        if (index == 0) return;
 
         System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
         if (index == 2 || index == 3) valueInt = mv.inputAnswer(sc, 0, 100000);
@@ -530,7 +534,7 @@ public class MainController {
         ArrayList<Order> orderList = getOrderList(con, null);
         printItemList(orderList, new OrderView());
 
-        System.out.println("수정할 주문의 주문 번호를 입력하세요.");
+        System.out.println("수정할 주문의 주문 번호를 입력하세요. 수정취소 : 0");
         while (true) {
             System.out.print("주문 번호 : ");
             pk = sc.nextLine();
@@ -544,6 +548,8 @@ public class MainController {
         System.out.println("\n수정할 항목의 번호를 입력해주세요.");
 
         index = mv.inputAnswer(sc, 1, cols.length);
+
+        if (index == 0) return;
 
         System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
         if (index == 3) valueInt = mv.inputAnswer(sc, 0, 100000);

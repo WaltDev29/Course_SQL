@@ -30,6 +30,7 @@ public class MainController2 {
         int subState;
         String mode;
         String pk = "";
+        boolean proceed;
         // 메인 프로그램
         while (true) {
             // Mode 선택
@@ -99,17 +100,17 @@ public class MainController2 {
 
             // PK 입력
             if (subState == 1) {
-                pk = getCustomerPk(con, sc);
+                pk = inputCustomerPk(con, sc);
                 customerList = getCustomerList(con, pk);
                 if (mainState == 3) printItemWithIndex(customerList.get(0), new CustomerView());
                 else printItem(customerList.get(0), new CustomerView());
             } else if (subState == 2) {
-                pk = getProductPk(con, sc);
+                pk = inputProductPk(con, sc);
                 productList = getProductList(con, pk);
                 if (mainState == 3) printItemWithIndex(productList.get(0), new ProductView());
                 else printItem(productList.get(0), new ProductView());
             } else if (subState == 3) {
-                pk = getOrderPk(con, sc);
+                pk = inputOrderPk(con, sc);
                 orderList = getOrderList(con, pk);
                 if (mainState == 3) printItemWithIndex(orderList.get(0), new OrderView());
                 else printItem(orderList.get(0), new OrderView());
@@ -126,14 +127,9 @@ public class MainController2 {
 
             // 데이터 수정
             if (mainState == 3) {
-                System.out.println("\n수정할 항목의 번호를 입력해주세요.");
-                if (subState == 1) {
-                    updateCustomerInfo(con, sc, pk);
-                } else if (subState == 2) {
-                    updateProductInfo(con, sc, pk);
-                } else if (subState == 3) {
-                    updateOrderInfo(con, sc, pk);
-                }
+                System.out.println("\n수정할 항목의 번호를 입력해주세요. 뒤로가기 : 0");
+                proceed = updateInfo(con, sc, subState, pk);
+                if (!proceed) continue;
 
                 System.out.println("\n수정이 완료되었습니다.");
                 System.out.print("\n--- 수정 정보 ---");
@@ -154,6 +150,48 @@ public class MainController2 {
         System.out.println("\n프로그램을 종료합니다.");
         sc.close();
     }
+
+
+    // Input
+    private static String inputCustomerPk(Connection con, Scanner sc) {
+        ArrayList<Customer> customerList = getCustomerList(con, null);
+        String target;
+        System.out.println("고객의 고객 아이디를 입력하세요.\n");
+        while (true) {
+            System.out.print("고객 아이디 : ");
+            target = sc.nextLine();
+            if (validatePk(customerList, target)) break;
+            else System.out.println("존재하지 않는 고객 아이디입니다. 다시 입력해주세요.\n");
+        }
+        return target;
+    }
+
+    private static String inputProductPk(Connection con, Scanner sc) {
+        ArrayList<Product> productList = getProductList(con, null);
+        String target;
+        System.out.println("제품의 제품번호를 입력하세요.\n");
+        while (true) {
+            System.out.print("제품번호 : ");
+            target = sc.nextLine();
+            if (validatePk(productList, target)) break;
+            else System.out.println("존재하지 않는 제품입니다. 다시 입력해주세요.\n");
+        }
+        return target;
+    }
+
+    private static String inputOrderPk(Connection con, Scanner sc) {
+        ArrayList<Order> orderList = getOrderList(con, null);
+        String target;
+        System.out.println("주문의 주문번호를 입력하세요.\n");
+        while (true) {
+            System.out.print("주문번호 : ");
+            target = sc.nextLine();
+            if (validatePk(orderList, target)) break;
+            else System.out.println("존재하지 않는 주문번호입니다. 다시 입력해주세요.\n");
+        }
+        return target;
+    }
+
 
     // Validate
     private static boolean validatePk(ArrayList<? extends Entity> EntityList, String pk) {
@@ -411,134 +449,61 @@ public class MainController2 {
     }
 
 
-    private static String getCustomerPk(Connection con, Scanner sc) {
-        ArrayList<Customer> customerList = getCustomerList(con, null);
-        String target;
-        System.out.println("고객의 고객 아이디를 입력하세요.\n");
-        while (true) {
-            System.out.print("고객 아이디 : ");
-            target = sc.nextLine();
-            if (validatePk(customerList, target)) break;
-            else System.out.println("존재하지 않는 고객 아이디입니다. 다시 입력해주세요.\n");
-        }
-        return target;
-    }
-
-    private static String getProductPk(Connection con, Scanner sc) {
-        ArrayList<Product> productList = getProductList(con, null);
-        String target;
-        System.out.println("제품의 제품번호를 입력하세요.\n");
-        while (true) {
-            System.out.printf("제품번호 : ");
-            target = sc.nextLine();
-            if (validatePk(productList, target)) break;
-            else System.out.println("존재하지 않는 제품입니다. 다시 입력해주세요.\n");
-        }
-        return target;
-    }
-
-    private static String getOrderPk(Connection con, Scanner sc) {
-        ArrayList<Order> orderList = getOrderList(con, null);
-        String target;
-        System.out.println("주문의 주문번호를 입력하세요.\n");
-        while (true) {
-            System.out.print("주문번호 : ");
-            target = sc.nextLine();
-            if (validatePk(orderList, target)) break;
-            else System.out.println("존재하지 않는 주문번호입니다. 다시 입력해주세요.\n");
-        }
-        return target;
-    }
-
     // UPDATE
-    private static void updateCustomerInfo(Connection con, Scanner sc, String pk) {
+    private static boolean updateInfo(Connection con, Scanner sc, int subState, String target) {
         MainView mv = new MainView();
-        int index;
         String value = "";
         int valueInt = 0;
-        String[] cols = {"고객이름", "나이", "등급", "직업", "적립금"};
+        String[] cols = new String[]{};
+        String table = "";
+        String pk = "";
+        int intCol1 = 0;
+        int intCol2 = 0;
 
-        index = mv.inputAnswer(sc, 1, cols.length);
+        if (subState == 1) {
+            cols = new String[]{"고객이름", "나이", "등급", "직업", "적립금"};
+            intCol1 = 2;
+            intCol2 = 5;
+            table = "고객";
+            pk = "고객아이디";
+        } else if (subState == 2) {
+            cols = new String[]{"제품명", "재고량", "단가", "제조업체"};
+            intCol1 = 2;
+            intCol2 = 3;
+            table = "제품";
+            pk = "제품번호";
+        } else if (subState == 3) {
+            cols = new String[]{"제품명", "배송지", "수량", "주문일자"};
+            intCol2 = 3;
+            table = "주문";
+            pk = "주문번호";
+        }
+
+        int index = mv.inputAnswer(sc, 0, cols.length);
+
+        if (index == 0) return false;
 
         System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
-        if (index == 2 || index == 5) valueInt = mv.inputAnswer(sc, 0, 100000);
+
+        if (index == intCol1 || index == intCol2) valueInt = mv.inputAnswer(sc, 0, 100000);
         else {
             System.out.print("\n입력 : ");
             value = sc.nextLine();
         }
 
-        String sql = "UPDATE 고객 SET " + cols[index - 1] + " = ? WHERE 고객아이디 = ?";
+        String sql = "UPDATE " + table + " SET " + cols[index - 1] + " = ? WHERE " + pk + " = ?";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
             if (index == 2 || index == 5) ps.setInt(1, valueInt);
             else ps.setString(1, value);
-            ps.setString(2, pk);
+            ps.setString(2, target);
             ps.executeUpdate();
             ps.close();
         } catch (SQLException e) {
             System.out.println("Statement or SQL Error");
             throw new RuntimeException(e);
         }
-    }
-
-    private static void updateProductInfo(Connection con, Scanner sc, String pk) {
-        MainView mv = new MainView();
-        int index;
-        String value = "";
-        int valueInt = 0;
-        String[] cols = {"제품명", "재고량", "단가", "제조업체"};
-
-        index = mv.inputAnswer(sc, 1, cols.length);
-
-        System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
-        if (index == 2 || index == 3) valueInt = mv.inputAnswer(sc, 0, 100000);
-        else {
-            System.out.print("\n입력 : ");
-            value = sc.nextLine();
-        }
-
-        String sql = "UPDATE 제품 SET " + cols[index - 1] + " = ? WHERE 제품번호 = ?";
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
-            if (index == 2 || index == 3) ps.setInt(1, valueInt);
-            else ps.setString(1, value);
-            ps.setString(2, pk);
-            ps.executeUpdate();
-            ps.close();
-        } catch (SQLException e) {
-            System.out.println("Statement or SQL Error");
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void updateOrderInfo(Connection con, Scanner sc, String pk) {
-        MainView mv = new MainView();
-        int index;
-        String value = "";
-        int valueInt = 0;
-        String[] cols = {"제품명", "배송지", "수량", "주문일자"};
-
-        index = mv.inputAnswer(sc, 1, cols.length);
-
-        System.out.printf("\n수정할 %s 입력\n", cols[index - 1]);
-        if (index == 3) valueInt = mv.inputAnswer(sc, 0, 100000);
-        else {
-            System.out.print("\n입력 : ");
-            value = sc.nextLine();
-        }
-
-        String sql = "UPDATE 주문 SET " + cols[index - 1] + " = ? WHERE 주문번호 = ?";
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
-            if (index == 3) ps.setInt(1, valueInt);
-            else ps.setString(1, value);
-            ps.setString(2, pk);
-            ps.executeUpdate();
-            ps.close();
-        } catch (SQLException e) {
-            System.out.println("Statement or SQL Error");
-            throw new RuntimeException(e);
-        }
+        return true;
     }
 
 
