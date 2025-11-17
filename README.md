@@ -1,10 +1,12 @@
 # 2025 Oracle DB를 사용한 SQL 공부 레파지토리입니다.
 
 ## 중간 과제  
-Java프로젝트는 SQL 디렉토리에 있습니다.  
+Midterm_Project.zip 파일에 중간과제를 담아놓았습니다.  
+하위 디렉토리 구조는 다음과 같으며 담긴 파일을 괄호 안에 적었습니다.  
+- Midterm_Report  (**레포트 파일**)
+- mvc_jdbc_test  (**소스 파일들**)  
+  
 main 함수 위치는 다음과 같습니다.  
-> /SQL/src/mvc_jdbc_test/controller/**MainController2.java**
+> Midterm_Project/mvc_jdbc_test/controller/**MainController2.java**
 
-MainController.java를 개발 후 MainController2.java로 리팩토링하였습니다.  
-
-**레포트는 Midterm_Report 디렉토리에 있습니다.**
+🚨**MainController.java를 개발 후 MainController2.java로 리팩토링하였습니다.**
