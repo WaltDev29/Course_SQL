@@ -90,13 +90,11 @@ public class MainController2 {
                 printItemList(orderList, new OrderView());
             }
 
-
             // 데이터 조회일 경우 바로 처음으로
             if (mainState == 1) {
                 mv.inputEnter(sc);
                 continue;
             }
-
 
             // PK 입력
             if (subState == 1) {
