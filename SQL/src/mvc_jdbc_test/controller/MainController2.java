@@ -11,6 +11,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+
 public class MainController2 {
     public static void main(String[] args) {
         // 변수 선언
